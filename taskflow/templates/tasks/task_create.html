@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Создать задачу | TaskFlow{% endblock %}
+
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <!-- Карточка формы -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="bi bi-plus-circle"></i> Создать новую задачу
+                    </h4>
+                </div>
+
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Название задачи -->
+                        <div class="mb-4">
+                            <label for="{{ form.title.id_for_label }}" class="form-label fw-medium">
+                                <i class="bi bi-tag"></i> Название задачи
+                            </label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="invalid-feedback d-block">{{ form.title.errors }}</div>
+            {% endif %}
+                        </div>
+
+                        <!-- Описание -->
+                        <div class="mb-4">
+                            <label for="{{ form.description.id_for_label }}" class="form-label fw-medium">
+                                <i class="bi bi-textarea-t"></i> Описание
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">{{ form.description.errors }}</div>
+            {% endif %}
+                        </div>
+
+                <!-- Срок выполнения -->
+                <div class="mb-4">
+                    <label for="{{ form.due_date.id_for_label }}" class="form-label fw-medium">
+                        <i class="bi bi-calendar-event"></i> Срок выполнения
+                    </label>
+                    {{ form.due_date }}
+                    {% if form.due_date.errors %}
+                        <div class="invalid-feedback d-block">{{ form.due_date.errors }}</div>
+            {% endif %}
+                </div>
+
+                <!-- Приоритет -->
+                <div class="mb-4">
+                    <label for="{{ form.priority.id_for_label }}" class="form-label fw-medium">
+                        <i class="bi bi-star-fill"></i> Приоритет
+                    </label>
+                    {{ form.priority }}
+                    {% if form.priority.errors %}
+                        <div class="invalid-feedback d-block">{{ form.priority.errors }}</div>
+            {% endif %}
+                </div>
+
+                <!-- Кнопки -->
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-save"></i> Сохранить задачу
+                    </button>
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary px-4">
+                        <i class="bi bi-arrow-left"></i> Вернуться к задачам
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Скрипт для подсветки полей с ошибками -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const errorFields = document.querySelectorAll('.invalid-feedback');
+    errorFields.forEach(field => {
+        const input = field.previousElementSibling;
+        if (input) {
+            input.classList.add('is-invalid');
+        }
+    });
+});
+</script>
+
+{% endblock %}
