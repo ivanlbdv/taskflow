@@ -92,16 +92,19 @@ class Task(models.Model):
     ]
 
     title = models.CharField(max_length=200)
-    description = models.TextField()
+    description = models.TextField(blank=True, null=True)
     due_date = models.DateTimeField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='todo')
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    order = models.PositiveIntegerField(default=0)
 
     def save(self, *args, **kwargs):
-        self.priority = calculate_priority(self.due_date, self.description)
+        # Автоматическое определение статуса
+        if self.due_date < timezone.now():
+            self.status = 'overdue'
         super().save(*args, **kwargs)
 
     def __str__(self):

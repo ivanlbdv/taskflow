@@ -1,84 +1,125 @@
 {% extends 'base.html' %}
-{% block title %}{% if form.instance.pk %}Редактировать задачу{% else %}Создать задачу{% endif %} | TaskFlow{% endblock %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if form.instance.pk %}Редактировать задачу{% else %}Создать задачу{% endif %} | TaskFlow
+{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-4">
-    <div class="col-lg-8 col-md-10">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-primary text-white py-3">
-                <h4 class="mb-0">
-                    {% if form.instance.pk %}
-                        <i class="bi bi-pencil"></i> Редактирование задачи
-                    {% else %}
-                        <i class="bi bi-plus-circle"></i> Создание новой задачи
-                    {% endif %}
-                </h4>
-            </div>
-            <div class="card-body p-4">
-                <form method="post" novalidate>
-                    {% csrf_token %}
-
-                    <!-- Название -->
-                    <div class="mb-4">
-                        <label for="{{ form.title.id_for_label }}" class="form-label fw-medium">
-                            <i class="bi bi-tag"></i> Название задачи
-                        </label>
-                        {{ form.title }}
-                        {% if form.title.errors %}
-                            <div class="invalid-feedback d-block">{{ form.title.errors }}</div>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card border-0 shadow-sm">
+                <!-- Заголовок формы -->
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0">
+                        {% if form.instance.pk %}
+                            <i class="bi bi-pencil"></i> Редактирование задачи
+                        {% else %}
+                            <i class="bi bi-plus-circle"></i> Создание новой задачи
                         {% endif %}
-                    </div>
+                    </h4>
+                </div>
 
-                    <!-- Описание -->
-                    <div class="mb-4">
-                        <label for="{{ form.description.id_for_label }}" class="form-label fw-medium">
-                            <i class="bi bi-textarea-t"></i> Описание
-                        </label>
-                        {{ form.description }}
-                        {% if form.description.errors %}
-                            <div class="invalid-feedback d-block">{{ form.description.errors }}</div>
-                        {% endif %}
-                    </div>
+                <!-- Тело формы -->
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
 
-                    <!-- Срок выполнения -->
-                    <div class="mb-4">
-                        <label for="{{ form.due_date.id_for_label }}" class="form-label fw-medium">
-                            <i class="bi bi-calendar-date"></i> Срок выполнения
-                        </label>
-                        {{ form.due_date }}
-                        {% if form.due_date.errors %}
-                            <div class="invalid-feedback d-block">{{ form.due_date.errors }}</div>
-                        {% endif %}
-                    </div>
+                        <!-- Название задачи -->
+                        <div class="mb-4">
+                            <label for="{{ form.title.id_for_label }}" class="form-label fw-medium text-secondary">
+                                <i class="bi bi-tag"></i> Название задачи <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   name="title"
+                                   id="{{ form.title.id_for_label }}"
+                                   class="form-control rounded-4"
+                                   placeholder="Введите название задачи"
+                                   value="{{ form.title.value|default:'' }}"
+                                   required>
+                            {% if form.title.errors %}
+                                <div class="invalid-feedback d-block mt-1">
+                                    {% for error in form.title.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
 
-                    <!-- Приоритет -->
-                    <div class="mb-4">
-                        <label for="{{ form.priority.id_for_label }}" class="form-label fw-medium">
-                            <i class="bi bi-star-fill"></i> Приоритет
-                        </label>
-                        {{ form.priority }}
-                        {% if form.priority.errors %}
-                            <div class="invalid-feedback d-block">{{ form.priority.errors }}</div>
-                        {% endif %}
-                    </div>
+                        <!-- Описание (та же высота, что и "Название") -->
+                        <div class="mb-4">
+                            <label for="{{ form.description.id_for_label }}" class="form-label fw-medium text-secondary">
+                                <i class="bi bi-textarea-t"></i> Описание
+                            </label>
+                            <small class="text-muted d-block mb-1">Можно не заполнять</small>
+                            <textarea name="description"
+                                      id="{{ form.description.id_for_label }}"
+                                      class="form-control rounded-4"
+                                      rows="1"
+                                      style="height: calc(2.5em + 2px); resize: none;"
+                                      placeholder="Добавьте детали">{{ form.description.value|default:'' }}</textarea>
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback d-block mt-1">
+                                    {% for error in form.description.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
 
-                    <!-- Кнопки -->
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary px-4">
-                            <i class="bi bi-save"></i> 
-                            {% if form.instance.pk %}Обновить{% else %}Сохранить{% endif %}
-                        </button>
-                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary px-4">
-                            <i class="bi bi-arrow-left"></i> Назад
-                        </a>
-                    </div>
-                </form>
+                        <!-- Срок выполнения -->
+                        <div class="mb-4">
+                            <label for="{{ form.due_date.id_for_label }}" class="form-label fw-medium text-secondary">
+                                <i class="bi bi-calendar-event"></i> Срок выполнения
+                            </label>
+                            <input type="datetime-local"
+                                   name="due_date"
+                                   id="{{ form.due_date.id_for_label }}"
+                                   class="form-control rounded-4"
+                                   value="{% if form.due_date.value %}{{ form.due_date.value|date:'Y-m-d\\TH:i' }}{% endif %}">
+                            {% if form.due_date.errors %}
+                                <div class="invalid-feedback d-block mt-1">
+                                    {% for error in form.due_date.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Приоритет -->
+                        <div class="mb-4">
+                            <label for="{{ form.priority.id_for_label }}" class="form-label fw-medium text-secondary">
+                                <i class="bi bi-star-fill"></i> Приоритет
+                            </label>
+                            <select name="priority"
+                                    id="{{ form.priority.id_for_label }}"
+                                    class="form-select rounded-4">
+                                {% for value, label in form.fields.priority.choices %}
+                                    <option value="{{ value }}"
+                                    {% if value == form.priority.value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.priority.errors %}
+                                <div class="invalid-feedback d-block mt-1">
+                                    {% for error in form.priority.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Кнопки -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary px-4 rounded-pill">
+                                <i class="bi bi-save"></i> Сохранить
+                            </button>
+                            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary px-4 rounded-pill">
+                                <i class="bi bi-arrow-left"></i> Назад
+                            </a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Подсветка полей с ошибками -->
+<!-- Скрипт для подсветки полей с ошибками -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const errorFields = document.querySelectorAll('.invalid-feedback');
@@ -90,5 +131,4 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-
 {% endblock %}

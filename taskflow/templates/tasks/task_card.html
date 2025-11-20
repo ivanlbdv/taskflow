@@ -1,0 +1,119 @@
+{% load static %}
+
+<div class="task-card bg-white p-3" style="width: 320px; min-width: 320px; max-width: 320px;">
+    <!-- Верхняя часть с приоритетом и названием -->
+    <div class="d-flex align-items-start">
+        <!-- Значок приоритета -->
+        <div class="me-3 align-self-start">
+            {% if task.priority == 'high' %}
+                <i class="bi bi-exclamation-triangle-fill text-danger fs-5"></i>
+            {% elif task.priority == 'medium' %}
+                <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+            {% else %}
+                <i class="bi bi-exclamation-triangle-fill text-primary fs-5"></i>
+            {% endif %}
+        </div>
+        
+        <!-- Название и описание задачи -->
+        <div>
+            <h6 class="mb-1">{{ task.title }}</h6>
+            {% if task.description %}
+                <p class="text-muted small mb-2">{{ task.description|truncatewords:20 }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Нижняя часть с метаинформацией -->
+    <div class="d-flex flex-column mt-2">
+        <!-- Статус задачи -->
+        <div class="mb-2">
+            <label class="text-muted small">Статус:</label>
+            <select class="form-select form-select-sm" id="status-select-{{ task.pk }}">
+                <option value="todo" {% if task.status == 'todo' %}selected{% endif %}>К выполнению</option>
+                <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>В работе</option>
+                <option value="done" {% if task.status == 'done' %}selected{% endif %}>Выполнено</option>
+                <option value="overdue" {% if task.status == 'overdue' %}selected{% endif %}>Просрочено</option>
+            </select>
+        </div>
+
+        <!-- Автор задачи -->
+        <div class="d-flex align-items-center mb-1 text-muted">
+            <i class="bi bi-person me-2"></i>
+            <span>{{ task.user.get_full_name|default:task.user.username }}</span>
+        </div>
+
+        <!-- Дата выполнения -->
+        <div class="d-flex align-items-center text-muted">
+            <i class="bi bi-calendar-event me-2"></i>
+            <span>{{ task.due_date|date:"d M Y, H:i" }}</span>
+        </div>
+    </div>
+
+    <!-- Кнопки управления -->
+    <div class="d-flex justify-content-end mt-3">
+        <!-- Кнопка редактирования -->
+        <a href="{% url 'task_update' task.pk %}" 
+           class="btn btn-sm btn-outline-primary rounded-circle me-2">
+            <i class="bi bi-pencil"></i>
+        </a>
+
+        <!-- Форма удаления -->
+        <form method="post" action="{% url 'task_delete' task.pk %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" 
+                    class="btn btn-sm btn-outline-danger rounded-circle"
+                    onclick="return confirm('Удалить задачу?')">
+                <i class="bi bi-trash"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- JavaScript для обработки смены статуса -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectElements = document.querySelectorAll('.form-select-sm');
+    
+    selectElements.forEach(select => {
+        select.addEventListener('change', function() {
+            const taskId = this.id.split('-').pop();
+            const newStatus = this.value;
+            
+            fetch(`/task/${taskId}/update-status/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    status: newStatus
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    showErrorMessage('Ошибка при обновлении статуса');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                showErrorMessage('Произошла ошибка при обновлении статуса');
+            });
+        });
+    });
+});
+
+function showErrorMessage(message) {
+    const alert = document.createElement('div');
+    alert.classList.add('alert', 'alert-danger', 'position-fixed', 'top-0', 'end-0', 'p-3', 'rounded-0');
+    alert.style.zIndex = '1030';
+    alert.innerHTML = `<strong>${message}</strong>`;
+    document.body.appendChild(alert);
+    
+    setTimeout(() => {
+        alert.remove();
+    }, 3000);
+}
+</script>

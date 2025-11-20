@@ -3,12 +3,14 @@ import json
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 from .forms import TaskForm
 from .models import Task
@@ -17,33 +19,47 @@ from .models import Task
 @login_required
 def dashboard(request):
     tasks = Task.objects.filter(user=request.user).order_by('priority', 'due_date')
+
+    for task in tasks:
+        if task.due_date < timezone.now():
+            task.status = 'overdue'
+            task.save()
+
+    overdue_tasks = tasks.filter(status='overdue')
+    todo_tasks = tasks.filter(status='todo')
+    in_progress_tasks = tasks.filter(status='in_progress')
+    done_tasks = tasks.filter(status='done')
+
     context = {
-        'tasks': tasks,
-        'Task': Task,
+        'overdue_tasks': overdue_tasks,
+        'todo_tasks': todo_tasks,
+        'in_progress_tasks': in_progress_tasks,
+        'done_tasks': done_tasks,
+        'total_tasks': tasks.count()
     }
     return render(request, 'tasks/dashboard.html', context)
 
 
-@method_decorator(login_required, name='dispatch')
-class TaskUpdateView(View):
-    def post(self, request, pk):
-        task = get_object_or_404(Task, pk=pk, user=request.user)
-        data = json.loads(request.body)
+# @method_decorator(login_required, name='dispatch')
+# class TaskUpdateView(View):
+#     def post(self, request, pk):
+#         task = get_object_or_404(Task, pk=pk, user=request.user)
+#         data = json.loads(request.body)
 
-        # Обновление статуса (перетаскивание между колонками)
-        if 'status' in data:
-            task.status = data['status']
+#         # Обновление статуса (перетаскивание между колонками)
+#         if 'status' in data:
+#             task.status = data['status']
 
-        # Обновление полей при редактировании
-        if 'title' in data:
-            task.title = data['title']
-        if 'description' in data:
-            task.description = data['description']
-        if 'due_date' in data:
-            task.due_date = data['due_date']
+#         # Обновление полей при редактировании
+#         if 'title' in data:
+#             task.title = data['title']
+#         if 'description' in data:
+#             task.description = data['description']
+#         if 'due_date' in data:
+#             task.due_date = data['due_date']
 
-        task.save()
-        return JsonResponse({'status': 'success'})
+#         task.save()
+#         return JsonResponse({'status': 'success'})
 
 
 @login_required
@@ -91,7 +107,7 @@ def task_create(request):
         task.save()
         return redirect('dashboard')
     context = {'form': form}
-    return render(request, 'tasks/task_create.html', context)
+    return render(request, 'tasks/task_form.html', context)
 
 
 def user_logout(request):
@@ -103,36 +119,33 @@ def user_logout(request):
 @login_required
 def task_update(request, pk):
     task = get_object_or_404(Task, pk=pk, user=request.user)
+    form = TaskForm(request.POST or None, instance=task)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('dashboard')
+    context = {'form': form, 'task': task}
+    return render(request, 'tasks/task_form.html', context)
 
-    if request.method == 'POST' and request.headers.get('Content-Type') == 'application/json':
-        try:
-            data = json.loads(request.body)
-            new_status = data.get('status')
 
-            if not new_status:
-                return JsonResponse({'error': 'Статус не указан'}, status=400)
-            if new_status not in [choice[0] for choice in Task.STATUS_CHOICES]:
-                return JsonResponse({'error': 'Недопустимый статус'}, status=400)
+@login_required
+@require_POST
+def update_task_status(request, pk):
+    task = get_object_or_404(Task, pk=pk, user=request.user)
 
-            task.status = new_status
-            task.save()
+    try:
+        data = json.loads(request.body)
+        new_status = data.get('status')
 
-            return JsonResponse({'status': 'success'})
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Неверный JSON'}, status=400)
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+        if new_status not in dict(Task.STATUS_CHOICES):
+            return JsonResponse({'success': False, 'error': 'Неверный статус'}, status=400)
 
-    elif request.method == 'POST':
-        form = TaskForm(request.POST, instance=task)
-        if form.is_valid():
-            form.save()
-            return redirect('dashboard')
+        task.status = new_status
+        task.save()
 
-        context = {'form': form, 'task': task}
-        return render(request, 'tasks/task_form.html', context)
+        return JsonResponse({
+            'success': True,
+            'redirect_url': reverse('dashboard')
+        })
 
-    else:
-        form = TaskForm(instance=task)
-        context = {'form': form, 'task': task}
-        return render(request, 'tasks/task_form.html', context)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Неверный формат данных'}, status=400)

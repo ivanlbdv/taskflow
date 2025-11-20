@@ -1,154 +1,92 @@
 {% extends 'base.html' %}
 
-{% block title %}Мои задачи | TaskFlow{% endblock %}
+{% block title %}Дашборд задач | TaskFlow{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 text-primary">Управление задачами</h1>
-    <span class="text-muted">Всего задач: {{ tasks.count }}</span>
-</div>
+<div class="container-fluid px-3 py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-6 text-primary fw-bold">
+                <i class="bi bi-grid-fill me-2"></i>Дашборд задач
+            </h1>
+            <p class="text-muted">Всего задач: {{ total_tasks }}</p>
+        </div>
+    </div>
 
-<div class="row">
-    {% for status, label in Task.STATUS_CHOICES %}
-    <div class="col-lg-3 col-md-6">
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header bg-soft-{{ status }} text-white py-2">
-                <h5 class="mb-0">{{ label }}</h5>
+    <div class="row flex-nowrap g-4">
+        <!-- Колонка: Просроченные -->
+        <div class="col-auto task-column">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-danger text-white py-3">
+                    <h5 class="mb-0 fw-bold">Просроченные</h5>
+                </div>
+                <div class="card-body p-3">
+                    {% for task in overdue_tasks %}
+                        {% include 'tasks/task_card.html' with task=task %}
+                    {% endfor %}
+                </div>
             </div>
-            <div id="column-{{ status }}" class="column p-3 bg-white" style="min-height: 400px;">
-                {% for task in tasks %}
-                    {% if task.status == status %}
-                    <div class="task-card card mb-2 shadow-sm hover-shadow"
-                         data-id="{{ task.pk }}"
-                         data-status="{{ task.status }}">
-                        <div class="card-body p-3">
-                            <!-- Заголовок и приоритет -->
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h6 class="fw-bold text-dark mb-0">{{ task.title }}</h6>
-                                {% if task.priority == 'high' %}
-                                    <span class="badge bg-danger rounded-pill"><i class="bi bi-exclamation-triangle"></i> Высокий</span>
-                                {% elif task.priority == 'medium' %}
-                                    <span class="badge bg-warning text-dark rounded-pill">Средний</span>
-                                {% else %}
-                                    <span class="badge bg-info text-white rounded-pill">Низкий</span>
-                                {% endif %}
-                            </div>
+        </div>
 
-                            <!-- Описание -->
-                            <p class="text-muted small mb-2">
-                                {{ task.description|truncatewords:10 }}
-                            </p>
+        <!-- Колонка: К выполнению -->
+        <div class="col-auto task-column">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-secondary text-white py-3">
+                    <h5 class="mb-0 fw-bold">К выполнению</h5>
+                </div>
+                <div class="card-body p-3">
+                    {% for task in todo_tasks %}
+                        {% include 'tasks/task_card.html' with task=task %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
 
-                            <!-- Метаданные: срок, автор -->
-                            <div class="d-flex flex-column gap-1 text-muted small">
-                                <div>
-                                    <i class="bi bi-calendar-event"></i>
-                                    До: {{ task.due_date|date:"d M Y, H:i" }}
-                                </div>
-                                <div>
-                                    <i class="bi bi-person"></i>
-                                    Автор: {{ task.user.get_full_name|default:task.user.username }}
-                                </div>
-                            </div>
+        <!-- Колонка: В работе -->
+        <div class="col-auto task-column">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0 fw-bold">В работе</h5>
+                </div>
+                <div class="card-body p-3">
+                    {% for task in in_progress_tasks %}
+                        {% include 'tasks/task_card.html' with task=task %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
 
-                            <!-- Кнопки действий -->
-                            <div class="mt-3 d-flex gap-2">
-                                <a href="{% url 'task_update' task.pk %}"
-                                   class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <button type="button"
-                                        class="btn btn-sm btn-outline-danger"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#deleteTaskModal{{ task.pk }}">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Модальное окно подтверждения удаления -->
-                    <div class="modal fade" id="deleteTaskModal{{ task.pk }}" tabindex="-1"
-                         aria-labelledby="deleteTaskLabel{{ task.pk }}" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="deleteTaskLabel{{ task.pk }}">
-                                        Подтверждение удаления
-                                    </h5>
-                                    <button type="button" class="btn-close"
-                                            data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    Вы уверены, что хотите удалить задачу «{{ task.title }}»?
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary"
-                                    data-bs-dismiss="modal">Отмена</button>
-                                    <a href="{% url 'task_delete' task.pk %}" class="btn btn-danger">
-                                        Удалить
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-                {% endfor %}
+        <!-- Колонка: Выполнено -->
+        <div class="col-auto task-column">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white py-3">
+                    <h5 class="mb-0 fw-bold">Выполнено</h5>
+                </div>
+                <div class="card-body p-3">
+                    {% for task in done_tasks %}
+                        {% include 'tasks/task_card.html' with task=task %}
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
-    {% endfor %}
-</div>
 
-<!-- Скрипт для drag-and-drop -->
-<script>
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
+    <!-- Стили для карточек -->
+    <style>
+        .task-column {
+            min-width: 300px;
+            max-width: 350px;
         }
-    }
-    return cookieValue;
-}
 
-$(function() {
-    $('.column').sortable({
-        connectWith: '.column',
-        placeholder: 'ui-state-highlight',
-        update: function(event, ui) {
-            const taskId = ui.item.data('id');
-            const newStatus = $(this).attr('id').split('-')[1];
-
-            $.ajax({
-                url: `/task/${taskId}/update/`,
-                type: 'POST',
-                contentType: 'application/json',
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                data: JSON.stringify({status: newStatus}),
-                success: function() {
-                    ui.item.data('status', newStatus);
-                    // alert('Статус обновлен!');
-                },
-                error: function(xhr, status, error) {
-                    console.error('Ошибка:', error);
-                    alert('Ошибка при обновлении статуса задачи.');
-                }
-            });
+        .task-card {
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: all 0.2s ease;
         }
-    }).disableSelection();
 
-    $('.task-card').click(function() {
-        const taskId = $(this).data('id');
-        window.location.href = `/task/${taskId}/update/`;
-    });
-});
-</script>
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 {% endblock %}
