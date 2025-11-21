@@ -111,7 +111,6 @@ class Task(models.Model):
             self.priority = self.calculate_priority(
                 self.due_date,
                 self.title,
-                self.description
             )
 
         if self.due_date < timezone.now() and self.status != 'overdue':
