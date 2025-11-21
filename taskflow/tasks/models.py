@@ -50,34 +50,6 @@ IGNORED_WORDS = {
 }
 
 
-def calculate_priority(due_date, description):
-    if timezone.is_naive(due_date):
-        due_date = timezone.make_aware(due_date)
-
-    current_time = timezone.now()
-    is_urgent = due_date < current_time + timedelta(days=1)
-
-    words = re.findall(r'[а-яё]+', description.lower())
-    lemmas = {morph.parse(word)[0].normal_form for word in words}
-    filtered_lemmas = lemmas - IGNORED_WORDS
-
-    total_weight = sum(
-        IMPORTANT_WORDS_WEIGHTS.get(lemma, 0)
-        for lemma in filtered_lemmas
-    )
-
-    is_important = total_weight >= 8
-
-    if is_urgent and is_important:
-        return 'high'
-    elif is_important and not is_urgent:
-        return 'medium'
-    elif is_urgent and not is_important:
-        return 'medium'
-    else:
-        return 'low'
-
-
 class Task(models.Model):
     STATUS_CHOICES = [
         ('overdue', 'Просроченные'),
@@ -101,9 +73,48 @@ class Task(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     order = models.PositiveIntegerField(default=0)
 
+    @staticmethod
+    def calculate_priority(due_date, title):
+        if not title or not title.strip():
+            return 'medium'
+        title = title.strip()
+
+        words = re.findall(r'[а-яё]+', title.lower())
+        lemmas = set()
+
+        for word in words:
+            parsed = morph.parse(word)[0]
+            lemma = parsed.normal_form
+            lemmas.add(lemma)
+
+        filtered_lemmas = {
+            lemma for lemma in lemmas
+            if lemma in IMPORTANT_WORDS_WEIGHTS and lemma not in IGNORED_WORDS
+        }
+        total_weight = sum(
+            IMPORTANT_WORDS_WEIGHTS.get(lemma, 0)
+            for lemma in filtered_lemmas
+        )
+
+        is_urgent = due_date < timezone.now() + timezone.timedelta(days=1)
+        is_important = total_weight >= 8
+
+        if is_urgent and is_important:
+            return 'high'
+        elif is_urgent or is_important:
+            return 'medium'
+        else:
+            return 'low'
+
     def save(self, *args, **kwargs):
-        # Автоматическое определение статуса
-        if self.due_date < timezone.now():
+        if not self.pk and not self.priority:
+            self.priority = self.calculate_priority(
+                self.due_date,
+                self.title,
+                self.description
+            )
+
+        if self.due_date < timezone.now() and self.status != 'overdue':
             self.status = 'overdue'
         super().save(*args, **kwargs)
 

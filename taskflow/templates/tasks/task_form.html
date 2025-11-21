@@ -81,28 +81,6 @@
                             {% endif %}
                         </div>
 
-                        <!-- Приоритет -->
-                        <div class="mb-4">
-                            <label for="{{ form.priority.id_for_label }}" class="form-label fw-medium text-secondary">
-                                <i class="bi bi-star-fill"></i> Приоритет
-                            </label>
-                            <select name="priority"
-                                    id="{{ form.priority.id_for_label }}"
-                                    class="form-select rounded-4">
-                                {% for value, label in form.fields.priority.choices %}
-                                    <option value="{{ value }}"
-                                    {% if value == form.priority.value %}selected{% endif %}>
-                                        {{ label }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                            {% if form.priority.errors %}
-                                <div class="invalid-feedback d-block mt-1">
-                                    {% for error in form.priority.errors %}{{ error }}{% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-
                         <!-- Кнопки -->
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary px-4 rounded-pill">

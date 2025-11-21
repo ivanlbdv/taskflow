@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}Аналитика | TaskFlow{% endblock %}
 
 {% block content %}
@@ -36,7 +38,7 @@
             <div class="card border-0 shadow-sm h-100 hover-shadow">
                 <div class="card-header bg-gradient-blue text-white py-3">
                     <div class="d-flex align-items-center">
-                        <i class="bi bi-checklist-task fs-4 me-2"></i>
+                        <i class="bi bi-clipboard fs-4 me-2"></i>
                         <h5 class="mb-0 fw-bold">Всего задач</h5>
                     </div>
                 </div>
@@ -167,42 +169,6 @@
         </div>
     </div>
 </div>
-
-<!-- Стили -->
-<style>
-    /* Градиентные заголовки */
-    .bg-gradient-red {
-        background: linear-gradient(135deg, #dc3545, #c82333);
-    }
-    .bg-gradient-blue {
-        background: linear-gradient(135deg, #0d6efd, #0b5ed7);
-    }
-    .bg-gradient-green {
-        background: linear-gradient(135deg, #28a745, #218837);
-    }
-
-    /* Эффект при наведении */
-    .hover-shadow:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
-    }
-
-    /* Плавные углы для карточек */
-    .card {
-        border-radius: 12px;
-        overflow: hidden;
-    }
-
-    /* Адаптивные отступы */
-    @media (max-width: 576px) {
-        .card-body {
-            padding: 1rem !important;
-        }
-        .list-group-item {
-            padding: 1rem 0.75rem !important;
-        }
-    }
-</style>
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
