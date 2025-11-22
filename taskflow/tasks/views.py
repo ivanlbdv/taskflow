@@ -81,8 +81,6 @@ def task_create(request):
             task.user = request.user
             task.save()
             return redirect('dashboard')
-        else:
-            print("Форма не валидна:", form.errors)
     else:
         form = TaskForm()
     context = {'form': form}
@@ -101,17 +99,16 @@ def task_update(request, pk):
     form = TaskForm(request.POST or None, instance=task)
 
     if request.method == 'POST' and form.is_valid():
-        # Получаем новую дату из формы
         new_due_date = form.cleaned_data['due_date']
 
-        # Если задача была просрочена, но новая дата в будущем — восстанавливаем исходный статус
         if (task.status == 'overdue'
-                and task.original_status  # есть сохранённый исходный статус
+                and task.original_status
                 and new_due_date >= timezone.now()):
             task.status = task.original_status
-            task.original_status = None  # очищаем после восстановления
+            task.original_status = None
 
-        form.save()  # сохраняет task.status и другие поля
+        form.save()
+
         return redirect('dashboard')
 
     context = {'form': form, 'task': task}
@@ -158,6 +155,7 @@ def update_task_status(request, pk):
 @login_required
 def tasks_list(request):
     status = request.GET.get('status', None)
+    sort_by = request.GET.get('sort', 'id')
     tasks = Task.objects.filter(user=request.user)
 
     if status == 'overdue':
@@ -174,6 +172,21 @@ def tasks_list(request):
 
     tasks = tasks.order_by('due_date')
 
+    sort_mapping = {
+        'id': 'id',
+        '-id': '-id',
+        'title': 'title',
+        '-title': '-title',
+        'status': 'status',
+        '-status': '-status',
+        'priority': 'priority',
+        '-priority': '-priority',
+        'due_date': 'due_date',
+        '-due_date': '-due_date',
+    }
+    order_field = sort_mapping.get(sort_by, 'id')
+    tasks = tasks.order_by(order_field)
+
     status_labels = {
         'overdue': 'Просроченные',
         'todo': 'К выполнению',
@@ -189,5 +202,11 @@ def tasks_list(request):
         'current_status': status,
         'current_label': current_label,
         'total_count': tasks.count(),
+        'sort_by': sort_by,
     }
     return render(request, 'tasks/tasks_list.html', context)
+
+
+def task_detail(request, pk):
+    task = get_object_or_404(Task, pk=pk, user=request.user)
+    return render(request, 'tasks/task_detail.html', {'task': task})

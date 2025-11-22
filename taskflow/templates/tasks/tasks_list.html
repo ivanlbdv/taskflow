@@ -7,24 +7,46 @@
 <div class="container-fluid px-3 py-4">
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
-                    <h1 class="display-5 text-primary fw-bold">
+                    <h1 class="display-6 text-secondary fw-bold">
                         <i class="bi bi-list-check me-2"></i>
                         {{ current_label }}
                     </h1>
                     <p class="text-muted">
                         {% if current_status %}
-                            Отображается {{ total_count }} задач со статусом «{{ current_label }}»
+                            Количество задач со статусом «{{ current_label }}»: {{ total_count }}
                         {% else %}
-                            Всего в системе: {{ total_count }} задач
+                            Общее количество задач: {{ total_count }}
                         {% endif %}
                     </p>
                 </div>
-                <a href="{% url 'tasks_list' %}" class="btn btn-outline-primary">
-                    <i class="bi bi-arrow-repeat me-1"></i>Сбросить фильтры
-                </a>
             </div>
+
+            <!-- Фильтр по статусу и кнопка сброса -->
+            <form method="get" class="d-flex flex-nowrap align-items-center gap-2">
+                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">Все статусы</option>
+                    <option value="overdue" {% if current_status == 'overdue' %}selected{% endif %}>Просроченные</option>
+                    <option value="todo" {% if current_status == 'todo' %}selected{% endif %}>К выполнению</option>
+                    <option value="in_progress" {% if current_status == 'in_progress' %}selected{% endif %}>В работе</option>
+                    <option value="done" {% if current_status == 'done' %}selected{% endif %}>Выполненные</option>
+                </select>
+
+                <!-- Сохраняем параметр сортировки при фильтрации -->
+                {% if sort_by %}
+                    <input type="hidden" name="sort" value="{{ sort_by }}">
+                {% endif %}
+
+                <!-- Кнопка сброса -->
+                <div class="ms-auto">
+                    <a href="?{% if sort_by %}sort={{ sort_by }}{% endif %}"
+                    class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                        Сбросить
+                    </a>
+                </div>
+            </form>
+
         </div>
     </div>
 
@@ -35,25 +57,83 @@
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
-                            <thead class="bg-light">
+                            <thead class="table-header">
                                 <tr>
-                                    <th style="width: 50px;">№</th>
-                                    <th>Название</th>
-                                    <th class="text-center" style="width: 120px;">Статус</th>
-                                    <th class="text-center" style="width: 140px;">Приоритет</th>
-                                    <th class="text-center" style="width: 160px;">Срок выполнения</th>
+                                    <!-- № -->
+                                    <th style="width: 70px;">
+                                        <a href="?{% if sort_by != 'id' %}sort=id{% else %}sort=-id{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}"
+                                        class="text-white text-decoration-none">
+                                            №
+                                            {% if sort_by == 'id' %}
+                                                <i class="bi bi-sort-down"></i>
+                                            {% elif sort_by == '-id' %}
+                                                <i class="bi bi-sort-up"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+
+                                    <!-- Название -->
+                                    <th>
+                                        <a href="?{% if sort_by != 'title' %}sort=title{% else %}sort=-title{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}"
+                                        class="text-white text-decoration-none">
+                                            Название
+                                            {% if sort_by == 'title' %}
+                                                <i class="bi bi-sort-down"></i>
+                                            {% elif sort_by == '-title' %}
+                                                <i class="bi bi-sort-up"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+
+                                    <!-- Статус -->
+                                    <th class="text-center" style="width: 160px;">
+                                        <a href="?{% if sort_by != 'status' %}sort=status{% else %}sort=-status{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}"
+                                        class="text-white text-decoration-none">
+                                            Статус
+                                            {% if sort_by == 'status' %}
+                                                <i class="bi bi-sort-down"></i>
+                                            {% elif sort_by == '-status' %}
+                                                <i class="bi bi-sort-up"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+
+                                    <!-- Приоритет -->
+                                    <th class="text-center" style="width: 140px;">
+                                        <a href="?{% if sort_by != 'priority' %}sort=priority{% else %}sort=-priority{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}"
+                                        class="text-white text-decoration-none">
+                                            Приоритет
+                                            {% if sort_by == 'priority' %}
+                                                <i class="bi bi-sort-down"></i>
+                                            {% elif sort_by == '-priority' %}
+                                                <i class="bi bi-sort-up"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+
+                                    <!-- Срок выполнения -->
+                                    <th class="text-center" style="width: 180px;">
+                                        <a href="?{% if sort_by != 'due_date' %}sort=due_date{% else %}sort=-due_date{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}"
+                                        class="text-white text-decoration-none">
+                                            Срок выполнения
+                                            {% if sort_by == 'due_date' %}
+                                                <i class="bi bi-sort-down"></i>
+                                            {% elif sort_by == '-due_date' %}
+                                                <i class="bi bi-sort-up"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+
+                                    <!-- Действия -->
                                     <th class="text-end" style="width: 80px;">Действия</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for task in tasks %}
-                                <tr class="
-                    {% if task.status == 'done' %}table-success
-                    {% elif task.is_overdue %}table-danger
-                    {% endif %}">
+                                <tr>
                     <td class="fw-medium text-secondary">{{ forloop.counter }}</td>
                     <td>
-                        <div class="fw-bold">{{ task.title }}</div>
+                        <div>{{ task.title }}</div>
                         {% if task.description %}
                             <small class="text-muted">{{ task.description|truncatewords:10 }}</small>
                         {% endif %}
@@ -70,8 +150,8 @@
                     </td>
                     <td class="text-center text-nowrap">
                         {% if task.is_overdue and task.status != 'done' %}
-                            <span class="text-danger fw-bold">
-                                Просрочено
+                            <span class="text-danger">
+                                <i class="bi bi-alarm me-1"></i>Просрочено
                             </span>
                         {% elif task.due_date %}
                             {{ task.due_date|date:"d.m.Y H:i" }}
@@ -80,9 +160,38 @@
                         {% endif %}
                     </td>
                     <td class="text-end">
-                        <a href="#" class="btn btn-sm btn-outline-secondary" title="Посмотреть">
-                            <i class="bi bi-eye"></i>
-                        </a>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle rounded-pill px-3"
+                                    type="button" id="actionMenu{{ task.id }}"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-three-dots"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actionMenu{{ task.id }}">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'task_detail' task.id %}">
+                                        <i class="bi bi-eye me-2"></i>Посмотреть
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'task_update' task.id %}">
+                                        <i class="bi bi-pencil me-2"></i>Редактировать
+                                    </a>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li>
+                                    <form method="post" action="{% url 'task_delete' task.id %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                                class="dropdown-item text-danger"
+                                                onclick="return confirm('Удалить задачу?')">
+                                            <i class="bi bi-trash me-2"></i>Удалить
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
                     </td>
                 </tr>
                 {% empty %}
@@ -102,7 +211,6 @@
 </div>
 </div>
 
-<!-- Пагинация (если нужно) -->
 {% if tasks.has_other_pages %}
 <nav class="mt-4" aria-label="...">
     <ul class="pagination justify-content-center">
@@ -141,21 +249,23 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87hgOtkIW8ONOXHQ8t5y5VV4p53eZTg+2nR6j0+mkc1o5"
+        crossorigin="anonymous"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Подсвечиваем просроченные задачи при загрузке
     document.querySelectorAll('tr.table-danger').forEach(row => {
         const dueDateCell = row.querySelector('td:nth-child(5)');
         if (dueDateCell) {
             dueDateCell.innerHTML = `
-                <span class="text-danger fw-bold">
+                <span class="text-danger">
                     <i class="bi bi-alarm me-1"></i>Просрочено
                 </span>
             `;
         }
     });
 
-    // Плавная прокрутка к началу при переходе между страницами
     if (window.location.hash === '#top') {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }

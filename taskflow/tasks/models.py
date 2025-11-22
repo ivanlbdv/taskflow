@@ -119,11 +119,10 @@ class Task(models.Model):
         return False
 
     def save(self, *args, **kwargs):
-        if not self.pk and not self.priority:  # только для новых задач
-            self.priority = self.calculate_priority(
-                self.due_date,
-                self.title,
-            )
+        self.priority = self.calculate_priority(
+            self.due_date,
+            self.title
+        )
         super().save(*args, **kwargs)
 
     def __str__(self):
