@@ -17,57 +17,63 @@
     <!-- Ключевые показатели -->
     <div class="row g-4 mb-5">
         <div class="col-12 col-md-6 col-xl-4">
-            <div class="card border-0 shadow-sm h-100 hover-shadow">
-                <div class="card-header bg-gradient-red text-white py-3">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-alarm-fill fs-4 me-2"></i>
-                        <h5 class="mb-0 fw-bold">Просрочено</h5>
+            <a href="{% url 'tasks_list' %}?status=overdue" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 hover-shadow">
+                    <div class="card-header bg-gradient-red text-white py-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-alarm-fill fs-4 me-2"></i>
+                            <h5 class="mb-0 fw-bold">Просрочено</h5>
+                        </div>
+                    </div>
+                    <div class="card-body d-flex align-items-center justify-content-between p-4">
+                        <div>
+                            <h2 class="display-4 fw-bold mb-1 text-danger">{{ overdue_count }}</h2>
+                            <p class="text-muted mb-0 fw-medium">задач требуют срочного внимания</p>
+                        </div>
+                        <i class="bi bi-exclamation-triangle text-danger fs-1 opacity-25"></i>
                     </div>
                 </div>
-                <div class="card-body d-flex align-items-center justify-content-between p-4">
-                    <div>
-                        <h2 class="display-4 fw-bold mb-1 text-danger">{{ overdue_count }}</h2>
-                        <p class="text-muted mb-0 fw-medium">задач требуют срочного внимания</p>
-                    </div>
-                    <i class="bi bi-exclamation-triangle text-danger fs-1 opacity-25"></i>
-                </div>
-            </div>
+            </a>
         </div>
 
         <div class="col-12 col-md-6 col-xl-4">
-            <div class="card border-0 shadow-sm h-100 hover-shadow">
-                <div class="card-header bg-gradient-blue text-white py-3">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-clipboard fs-4 me-2"></i>
-                        <h5 class="mb-0 fw-bold">Всего задач</h5>
+            <a href="{% url 'tasks_list' %}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 hover-shadow">
+                    <div class="card-header bg-gradient-blue text-white py-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-clipboard fs-4 me-2"></i>
+                            <h5 class="mb-0 fw-bold">Всего задач</h5>
+                        </div>
+                    </div>
+                    <div class="card-body d-flex align-items-center justify-content-between p-4">
+                        <div>
+                            <h2 class="display-4 fw-bold mb-1 text-primary">{{ total_tasks }}</h2>
+                            <p class="text-muted mb-0 fw-medium">в системе на текущий момент</p>
+                        </div>
+                        <i class="bi bi-list-check text-primary fs-1 opacity-25"></i>
                     </div>
                 </div>
-                <div class="card-body d-flex align-items-center justify-content-between p-4">
-                    <div>
-                        <h2 class="display-4 fw-bold mb-1 text-primary">{{ total_tasks }}</h2>
-                        <p class="text-muted mb-0 fw-medium">в системе на текущий момент</p>
-                    </div>
-                    <i class="bi bi-list-check text-primary fs-1 opacity-25"></i>
-                </div>
-            </div>
+            </a>
         </div>
 
         <div class="col-12 col-md-6 col-xl-4">
-            <div class="card border-0 shadow-sm h-100 hover-shadow">
-                <div class="card-header bg-gradient-green text-white py-3">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-check-circle-fill fs-4 me-2"></i>
-                        <h5 class="mb-0 fw-bold">Выполнено</h5>
+            <a href="{% url 'tasks_list' %}?status=done" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 hover-shadow">
+                    <div class="card-header bg-gradient-green text-white py-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-check-circle-fill fs-4 me-2"></i>
+                            <h5 class="mb-0 fw-bold">Выполнено</h5>
+                        </div>
+                    </div>
+                    <div class="card-body d-flex align-items-center justify-content-between p-4">
+                        <div>
+                            <h2 class="display-4 fw-bold mb-1 text-success">{{ status_counts.done }}</h2>
+                            <p class="text-muted mb-0 fw-medium">успешно завершено</p>
+                        </div>
+                        <i class="bi bi-award text-success fs-1 opacity-25"></i>
                     </div>
                 </div>
-                <div class="card-body d-flex align-items-center justify-content-between p-4">
-                    <div>
-                        <h2 class="display-4 fw-bold mb-1 text-success">{{ status_counts.done }}</h2>
-                        <p class="text-muted mb-0 fw-medium">успешно завершено</p>
-                    </div>
-                    <i class="bi bi-award text-success fs-1 opacity-25"></i>
-                </div>
-            </div>
+            </a>
         </div>
     </div>
 

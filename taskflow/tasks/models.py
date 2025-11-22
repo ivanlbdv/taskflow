@@ -72,6 +72,13 @@ class Task(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     order = models.PositiveIntegerField(default=0)
+    original_status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        blank=True,
+        null=True,
+        help_text='Статус до перевода в "Просрочено"'
+    )
 
     @staticmethod
     def calculate_priority(due_date, title):
@@ -106,15 +113,17 @@ class Task(models.Model):
         else:
             return 'low'
 
+    def is_overdue(self):
+        if self.due_date and self.status == 'overdue':
+            return self.due_date < timezone.now()
+        return False
+
     def save(self, *args, **kwargs):
-        if not self.pk and not self.priority:
+        if not self.pk and not self.priority:  # только для новых задач
             self.priority = self.calculate_priority(
                 self.due_date,
                 self.title,
             )
-
-        if self.due_date < timezone.now() and self.status != 'overdue':
-            self.status = 'overdue'
         super().save(*args, **kwargs)
 
     def __str__(self):

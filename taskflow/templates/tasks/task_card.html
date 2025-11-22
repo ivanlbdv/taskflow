@@ -1,5 +1,5 @@
 {% load static %}
-<div class="task-card bg-white border rounded-3 shadow-sm p-3" style="min-width: 0; width: 100%;">
+<div class="task-card bg-white border rounded-3 shadow-sm p-3 card-color" style="min-width: 0; width: 100%;">
     <!-- Верхняя часть: приоритет + заголовок -->
 
     <div class="task-card bg-white border rounded-3 shadow-sm p-3
@@ -40,31 +40,50 @@
         <!-- Статус -->
         <div class="mb-2">
             <label class="form-label fst-italic">Статус:</label>
-            <select class="form-select form-select-sm" id="status-select-{{ task.pk }}">
-                <option value="todo" {% if task.status == 'todo' %}selected{% endif %}>К выполнению</option>
-                <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>В работе</option>
-                <option value="done" {% if task.status == 'done' %}selected{% endif %}>Выполнено</option>
-                <option value="overdue" {% if task.status == 'overdue' %}selected{% endif %}>Просрочено</option>
-            </select>
+            {% if task.is_overdue %}
+                <!-- Если задача просрочена → только текст и hidden-поле -->
+                <div class="text-danger d-flex align-items-center">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    <span>Просрочено</span>
+                </div>
+                <input type="hidden" name="status" value="overdue">
+                <small class="text-muted">
+                    Срок истёк {{ task.due_date|date:"d M Y, H:i" }}.<br>
+                    Для смены статуса обновите дату выполнения.
+                </small>
+            {% else %}
+                <!-- Иначе показываем селектор -->
+                <select class="form-select form-select-sm" id="status-select-{{ task.pk }}">
+                    <option value="todo" {% if task.status == 'todo' %}selected{% endif %}>К выполнению</option>
+                    <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>В работе</option>
+                    <option value="done" {% if task.status == 'done' %}selected{% endif %}>Выполнено</option>
+                    <option value="overdue" {% if task.status == 'overdue' %}selected{% endif %}>Просрочено</option>
+                </select>
+            {% endif %}
         </div>
         <!-- Дата выполнения -->
-        <div class="d-flex align-items-center mb-1">
-            <i class="bi bi-calendar-event me-1"></i>
-            <span>{{ task.due_date|date:"d M Y, H:i" }}</span>
+        <div class="mb-1">
+            <label class="form-label fst-italic">Срок:</label>
+            <div class="d-flex align-items-center">
+                <i class="bi bi-calendar-event me-1"></i>
+                <span>{{ task.due_date|date:"d M Y, H:i" }}</span>
+            </div>
         </div>
     </div>
 
     <!-- Кнопки управления -->
     <div class="d-flex justify-content-end mt-3">
         <a href="{% url 'task_update' task.pk %}"
-           class="btn btn-sm btn-outline-primary rounded-circle me-2">
+        class="btn-task-edit btn rounded-circle me-2"
+        title="Редактировать задачу">
             <i class="bi bi-pencil"></i>
         </a>
         <form method="post" action="{% url 'task_delete' task.pk %}" style="display: inline;">
             {% csrf_token %}
             <button type="submit"
-                    class="btn btn-sm btn-outline-danger rounded-circle"
-                    onclick="return confirm('Удалить задачу?')">
+                    class="btn-task-delete btn rounded-circle"
+                    onclick="return confirm('Удалить задачу?')"
+                    title="Удалить задачу">
                 <i class="bi bi-trash"></i>
             </button>
         </form>

@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Список задач | TaskFlow{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5 text-primary fw-bold">
+                        <i class="bi bi-list-check me-2"></i>
+                        {{ current_label }}
+                    </h1>
+                    <p class="text-muted">
+                        {% if current_status %}
+                            Отображается {{ total_count }} задач со статусом «{{ current_label }}»
+                        {% else %}
+                            Всего в системе: {{ total_count }} задач
+                        {% endif %}
+                    </p>
+                </div>
+                <a href="{% url 'tasks_list' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-repeat me-1"></i>Сбросить фильтры
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Таблица задач -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th style="width: 50px;">№</th>
+                                    <th>Название</th>
+                                    <th class="text-center" style="width: 120px;">Статус</th>
+                                    <th class="text-center" style="width: 140px;">Приоритет</th>
+                                    <th class="text-center" style="width: 160px;">Срок выполнения</th>
+                                    <th class="text-end" style="width: 80px;">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for task in tasks %}
+                                <tr class="
+                    {% if task.status == 'done' %}table-success
+                    {% elif task.is_overdue %}table-danger
+                    {% endif %}">
+                    <td class="fw-medium text-secondary">{{ forloop.counter }}</td>
+                    <td>
+                        <div class="fw-bold">{{ task.title }}</div>
+                        {% if task.description %}
+                            <small class="text-muted">{{ task.description|truncatewords:10 }}</small>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <span class="bg-{% if task.status == 'todo' %}todo{% elif task.status == 'in_progress' %}in-progress{% elif task.status == 'done' %}done{% else %}overdue{% endif %} rounded-pill px-3 py-1">
+                            {{ task.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <span class="task-card priority-{% if task.priority == 'high' %}high{% elif task.priority == 'medium' %}medium{% else %}low{% endif %} rounded-pill px-3 py-1">
+                            {{ task.get_priority_display }}
+                        </span>
+                    </td>
+                    <td class="text-center text-nowrap">
+                        {% if task.is_overdue and task.status != 'done' %}
+                            <span class="text-danger fw-bold">
+                                Просрочено
+                            </span>
+                        {% elif task.due_date %}
+                            {{ task.due_date|date:"d.m.Y H:i" }}
+                        {% else %}
+                            <span class="text-muted">Не указан</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="#" class="btn btn-sm btn-outline-secondary" title="Посмотреть">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5">
+                        <div class="text-muted my-3">
+                            <i class="bi bi-inbox-fill fs-1 d-block mb-2"></i>
+                            Задач не найдено
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+</div>
+
+<!-- Пагинация (если нужно) -->
+{% if tasks.has_other_pages %}
+<nav class="mt-4" aria-label="...">
+    <ul class="pagination justify-content-center">
+        {% if tasks.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?status={{ current_status }}&page={{ tasks.previous_page_number }}">
+                    Предыдущая
+                </a>
+            </li>
+        {% endif %}
+
+        {% for i in tasks.paginator.page_range %}
+            {% if tasks.number == i %}
+                <li class="page-item active">
+                    <span class="page-link">{{ i }}</span>
+                </li>
+            {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="?status={{ current_status }}&page={{ i }}">{{ i }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if tasks.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?status={{ current_status }}&page={{ tasks.next_page_number }}">
+                    Следующая
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Подсвечиваем просроченные задачи при загрузке
+    document.querySelectorAll('tr.table-danger').forEach(row => {
+        const dueDateCell = row.querySelector('td:nth-child(5)');
+        if (dueDateCell) {
+            dueDateCell.innerHTML = `
+                <span class="text-danger fw-bold">
+                    <i class="bi bi-alarm me-1"></i>Просрочено
+                </span>
+            `;
+        }
+    });
+
+    // Плавная прокрутка к началу при переходе между страницами
+    if (window.location.hash === '#top') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+});
+</script>
+{% endblock %}

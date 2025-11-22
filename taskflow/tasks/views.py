@@ -3,7 +3,7 @@ import json
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db import models
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -17,28 +17,29 @@ from .models import Task
 @login_required
 def dashboard(request):
     now = timezone.now()
-    tasks = Task.objects.filter(
-        user=request.user
-    ).select_related().prefetch_related()
-    overdue_tasks = tasks.filter(
-        Q(status='overdue') | Q(due_date__lt=now)
-    ).order_by('-priority', 'due_date')
-    todo_tasks = tasks.filter(
-        status='todo',
-        due_date__gte=now
-    ).order_by('-priority', 'due_date')
-    in_progress_tasks = tasks.filter(
-        status='in_progress'
-    ).order_by('-priority', 'due_date')
-    done_tasks = tasks.filter(
-        status='done'
-    ).order_by('-due_date')
+
+    Task.objects.filter(
+        user=request.user,
+        due_date__lt=now,
+        status__in=['todo', 'in_progress'],
+        original_status__isnull=True
+    ).update(
+        status='overdue',
+        original_status=models.F('status')
+    )
+
+    tasks = Task.objects.filter(user=request.user)
+    overdue_tasks = tasks.filter(status='overdue').order_by('due_date', '-priority')
+    todo_tasks = tasks.filter(status='todo').order_by('due_date', '-priority')
+    in_progress_tasks = tasks.filter(status='in_progress').order_by('due_date', '-priority')
+    done_tasks = tasks.filter(status='done').order_by('due_date', '-priority')
+
     context = {
         'overdue_tasks': overdue_tasks,
         'todo_tasks': todo_tasks,
         'in_progress_tasks': in_progress_tasks,
         'done_tasks': done_tasks,
-        'total_tasks': Task.objects.filter(user=request.user).count(),
+        'total_tasks': tasks.count(),
     }
     return render(request, 'tasks/dashboard.html', context)
 
@@ -98,9 +99,21 @@ def user_logout(request):
 def task_update(request, pk):
     task = get_object_or_404(Task, pk=pk, user=request.user)
     form = TaskForm(request.POST or None, instance=task)
+
     if request.method == 'POST' and form.is_valid():
-        form.save()
+        # Получаем новую дату из формы
+        new_due_date = form.cleaned_data['due_date']
+
+        # Если задача была просрочена, но новая дата в будущем — восстанавливаем исходный статус
+        if (task.status == 'overdue'
+                and task.original_status  # есть сохранённый исходный статус
+                and new_due_date >= timezone.now()):
+            task.status = task.original_status
+            task.original_status = None  # очищаем после восстановления
+
+        form.save()  # сохраняет task.status и другие поля
         return redirect('dashboard')
+
     context = {'form': form, 'task': task}
     return render(request, 'tasks/task_form.html', context)
 
@@ -109,22 +122,72 @@ def task_update(request, pk):
 @require_POST
 def update_task_status(request, pk):
     task = get_object_or_404(Task, pk=pk, user=request.user)
+
     try:
         data = json.loads(request.body)
         new_status = data.get('status')
+
         if new_status not in dict(Task.STATUS_CHOICES):
-            return JsonResponse(
-                {'success': False, 'error': 'Неверный статус'},
-                status=400
-            )
+            return JsonResponse({
+                'success': False,
+                'error': 'Нельзя изменить статус: задача просрочена. Обновите срок выполнения.'
+            }, status=400)
+
+        # Проверка валидности статуса
+        if new_status not in dict(Task.STATUS_CHOICES):
+            return JsonResponse({
+                'success': False,
+                'error': 'Неверный статус'
+            }, status=400)
+
         task.status = new_status
         task.save()
+
         return JsonResponse({
             'success': True,
             'redirect_url': reverse('dashboard')
         })
+
     except json.JSONDecodeError:
-        return JsonResponse(
-            {'success': False, 'error': 'Неверный формат данных'},
-            status=400
+        return JsonResponse({
+            'success': False,
+            'error': 'Неверный формат данных'
+        }, status=400)
+
+
+@login_required
+def tasks_list(request):
+    status = request.GET.get('status', None)
+    tasks = Task.objects.filter(user=request.user)
+
+    if status == 'overdue':
+        tasks = tasks.filter(
+            models.Q(status='overdue') |
+            models.Q(due_date__lt=timezone.now(), status__in=['todo', 'in_progress'])
         )
+    elif status == 'todo':
+        tasks = tasks.filter(status='todo')
+    elif status == 'in_progress':
+        tasks = tasks.filter(status='in_progress')
+    elif status == 'done':
+        tasks = tasks.filter(status='done')
+
+    tasks = tasks.order_by('due_date')
+
+    status_labels = {
+        'overdue': 'Просроченные',
+        'todo': 'К выполнению',
+        'in_progress': 'В работе',
+        'done': 'Выполненные',
+        None: 'Все задачи'
+    }
+
+    current_label = status_labels.get(status, 'Все задачи')
+
+    context = {
+        'tasks': tasks,
+        'current_status': status,
+        'current_label': current_label,
+        'total_count': tasks.count(),
+    }
+    return render(request, 'tasks/tasks_list.html', context)
