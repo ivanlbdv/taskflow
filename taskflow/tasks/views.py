@@ -1,14 +1,16 @@
+import datetime
 import json
 
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db import models
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from .forms import TaskForm
 from .models import Task
@@ -130,7 +132,6 @@ def update_task_status(request, pk):
                 'error': 'Нельзя изменить статус: задача просрочена. Обновите срок выполнения.'
             }, status=400)
 
-        # Проверка валидности статуса
         if new_status not in dict(Task.STATUS_CHOICES):
             return JsonResponse({
                 'success': False,
@@ -197,8 +198,12 @@ def tasks_list(request):
 
     current_label = status_labels.get(status, 'Все задачи')
 
+    paginator = Paginator(tasks, 10)
+    page_number = request.GET.get('page')
+    tasks_page = paginator.get_page(page_number)
+
     context = {
-        'tasks': tasks,
+        'tasks': tasks_page,
         'current_status': status,
         'current_label': current_label,
         'total_count': tasks.count(),
@@ -210,3 +215,39 @@ def tasks_list(request):
 def task_detail(request, pk):
     task = get_object_or_404(Task, pk=pk, user=request.user)
     return render(request, 'tasks/task_detail.html', {'task': task})
+
+
+@login_required
+@require_GET
+def tasks_stats_api(request):
+    period = request.GET.get('period', 'month')
+    user = request.user
+
+    now = timezone.now()
+    if period == 'day':
+        start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif period == 'week':
+        start_date = (now - datetime.timedelta(days=now.weekday())).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+    elif period == 'month':
+        start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    elif period == 'year':
+        start_date = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    else:
+        start_date = None
+
+    tasks = Task.objects.filter(user=user)
+    if start_date:
+        tasks = tasks.filter(created_at__gte=start_date)
+
+    status_counts = {}
+    for status, _ in Task.STATUS_CHOICES:
+        status_counts[status] = tasks.filter(status=status).count()
+
+    return JsonResponse({
+        'overdue': status_counts.get('overdue', 0),
+        'todo': status_counts.get('todo', 0),
+        'in_progress': status_counts.get('in_progress', 0),
+        'done': status_counts.get('done', 0)
+    })

@@ -9,7 +9,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
-                    <h1 class="display-6 text-secondary fw-bold">
+                    <h1 class="display-6 text-secondary fs-4 fw-medium">
                         <i class="bi bi-list-check me-2"></i>
                         {{ current_label }}
                     </h1>
@@ -25,7 +25,7 @@
 
             <!-- Фильтр по статусу и кнопка сброса -->
             <form method="get" class="d-flex flex-nowrap align-items-center gap-2">
-                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                <select name="status" class="form-select form-select-sm rounded-pill px-3" onchange="this.form.submit()">
                     <option value="">Все статусы</option>
                     <option value="overdue" {% if current_status == 'overdue' %}selected{% endif %}>Просроченные</option>
                     <option value="todo" {% if current_status == 'todo' %}selected{% endif %}>К выполнению</option>
@@ -149,7 +149,7 @@
                         </span>
                     </td>
                     <td class="text-center text-nowrap">
-                        {% if task.is_overdue and task.status != 'done' %}
+                        {% if task.is_overdue %}
                             <span class="text-danger">
                                 <i class="bi bi-alarm me-1"></i>Просрочено
                             </span>

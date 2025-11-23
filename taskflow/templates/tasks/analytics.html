@@ -7,7 +7,7 @@
 <div class="container-fluid px-3 py-4">
     <div class="row mb-4">
         <div class="col-12">
-            <h1 class="display-6 text-secondary fw-bold">
+            <h1 class="display-6 text-secondary fs-4 fw-medium">
                 <i class="bi bi-bar-chart-fill me-2"></i>Аналитика задач
             </h1>
             <p class="text-muted">Текущая статистика и динамика выполнения задач</p>
@@ -15,148 +15,199 @@
     </div>
 
     <!-- Ключевые показатели -->
-    <div class="row g-4 mb-5">
-        <div class="col-12 col-md-6 col-xl-4">
-            <a href="{% url 'tasks_list' %}?status=overdue" class="text-decoration-none">
-                <div class="card border-0 shadow-sm h-100 hover-shadow">
-                    <div class="card-header bg-gradient-red text-white py-3">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-alarm-fill fs-4 me-2"></i>
-                            <h5 class="mb-0 fw-bold">Просрочено</h5>
-                        </div>
-                    </div>
-                    <div class="card-body d-flex align-items-center justify-content-between p-4">
-                        <div>
-                            <h2 class="display-4 fw-bold mb-1 text-danger">{{ overdue_count }}</h2>
-                            <p class="text-muted mb-0 fw-medium">задач требуют срочного внимания</p>
-                        </div>
-                        <i class="bi bi-exclamation-triangle text-danger fs-1 opacity-25"></i>
-                    </div>
-                </div>
-            </a>
-        </div>
+    <div class="row g-3 mb-5">
+        <!-- Обёртка для горизонтальной прокрутки на узких экранах -->
+        <div class="col-12 overflow-x-auto">
+            <div class="d-flex gap-3 pb-2" style="min-width: 1200px;">
 
-        <div class="col-12 col-md-6 col-xl-4">
-            <a href="{% url 'tasks_list' %}" class="text-decoration-none">
-                <div class="card border-0 shadow-sm h-100 hover-shadow">
-                    <div class="card-header bg-gradient-blue text-white py-3">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-clipboard fs-4 me-2"></i>
-                            <h5 class="mb-0 fw-bold">Всего задач</h5>
+                <!-- Просрочено -->
+                <div class="flex-shrink-0" style="width: 240px;">
+                    <a href="{% url 'tasks_list' %}?status=overdue" class="text-decoration-none">
+                        <div class="card border-0 shadow-sm h-auto position-relative"
+                            style="transition: border-color 0.3s ease, transform 0.3s ease;">
+                            <div class="card-header bg-gradient-red text-white py-2" style="min-height: 48px;">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-alarm-fill fs-5 me-2"></i>
+                                    <h6 class="mb-0 fw-bold">Просрочено</h6>
+                                </div>
+                            </div>
+                            <div class="card-body d-flex align-items-center justify-content-between p-3">
+                                <div>
+                                    <div class="fw-bold text-danger fs-4">{{ overdue_count }}</div>
+                                    <p class="text-muted mb-0 fw-medium" style="font-size: 0.75rem;">требуют внимания</p>
+                                </div>
+                                <i class="bi bi-exclamation-triangle text-danger fs-4 opacity-25"></i>
+                            </div>
                         </div>
-                    </div>
-                    <div class="card-body d-flex align-items-center justify-content-between p-4">
-                        <div>
-                            <h2 class="display-4 fw-bold mb-1 text-primary">{{ total_tasks }}</h2>
-                            <p class="text-muted mb-0 fw-medium">в системе на текущий момент</p>
-                        </div>
-                        <i class="bi bi-list-check text-primary fs-1 opacity-25"></i>
-                    </div>
+                    </a>
                 </div>
-            </a>
-        </div>
 
-        <div class="col-12 col-md-6 col-xl-4">
-            <a href="{% url 'tasks_list' %}?status=done" class="text-decoration-none">
-                <div class="card border-0 shadow-sm h-100 hover-shadow">
-                    <div class="card-header bg-gradient-green text-white py-3">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-check-circle-fill fs-4 me-2"></i>
-                            <h5 class="mb-0 fw-bold">Выполнено</h5>
+
+                <!-- К выполнению -->
+                <div class="flex-shrink-0" style="width: 240px;">
+                    <a href="{% url 'tasks_list' %}?status=todo" class="text-decoration-none">
+                        <div class="card border-0 shadow-sm h-auto position-relative"
+                            style="transition: border-color 0.3s ease, transform 0.3s ease;">
+                            <div class="card-header bg-gradient-yellow text-white py-2" style="min-height: 48px;">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-clipboard fs-5 me-2"></i>
+                                    <h6 class="mb-0 fw-bold">К выполнению</h6>
+                                </div>
+                            </div>
+                            <div class="card-body d-flex align-items-center justify-content-between p-3">
+                                <div>
+                                    <div class="fw-bold text-warning fs-4">{{ status_counts.todo }}</div>
+                                    <p class="text-muted mb-0 fw-medium" style="font-size: 0.75rem;">ожидают старта</p>
+                                </div>
+                                <i class="bi bi-arrow-right text-warning fs-4 opacity-25"></i>
+                            </div>
                         </div>
-                    </div>
-                    <div class="card-body d-flex align-items-center justify-content-between p-4">
-                        <div>
-                            <h2 class="display-4 fw-bold mb-1 text-success">{{ status_counts.done }}</h2>
-                            <p class="text-muted mb-0 fw-medium">успешно завершено</p>
-                        </div>
-                        <i class="bi bi-award text-success fs-1 opacity-25"></i>
-                    </div>
+                    </a>
                 </div>
-            </a>
+
+
+                <!-- В работе -->
+                <div class="flex-shrink-0" style="width: 240px;">
+                    <a href="{% url 'tasks_list' %}?status=in_progress" class="text-decoration-none">
+                        <div class="card border-0 shadow-sm h-auto position-relative"
+                            style="transition: border-color 0.3s ease, transform 0.3s ease;">
+                            <div class="card-header bg-gradient-info text-white py-2" style="min-height: 48px;">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-gear fs-5 me-2"></i>
+                                    <h6 class="mb-0 fw-bold">В работе</h6>
+                                </div>
+                            </div>
+                            <div class="card-body d-flex align-items-center justify-content-between p-3">
+                                <div>
+                                    <div class="fw-bold text-info fs-4">{{ status_counts.in_progress }}</div>
+                                    <p class="text-muted mb-0 fw-medium" style="font-size: 0.75rem;">активно</p>
+                                </div>
+                                <i class="bi bi-tools text-info fs-4 opacity-25"></i>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Выполнено -->
+                <div class="flex-shrink-0" style="width: 240px;">
+                    <a href="{% url 'tasks_list' %}?status=done" class="text-decoration-none">
+                        <div class="card border-0 shadow-sm h-auto position-relative"
+                            style="transition: border-color 0.3s ease, transform 0.3s ease;">
+                            <div class="card-header bg-gradient-green text-white py-2" style="min-height: 48px;">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-check-circle-fill fs-5 me-2"></i>
+                                    <h6 class="mb-0 fw-bold">Выполнено</h6>
+                                </div>
+                            </div>
+                            <div class="card-body d-flex align-items-center justify-content-between p-3">
+                                <div>
+                                    <div class="fw-bold text-success fs-4">{{ status_counts.done }}</div>
+                                    <p class="text-muted mb-0 fw-medium" style="font-size: 0.75rem;">завершено</p>
+                                </div>
+                                <i class="bi bi-award text-success fs-4 opacity-25"></i>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Всего задач -->
+                <div class="flex-shrink-0" style="width: 240px;">
+                    <a href="{% url 'tasks_list' %}" class="text-decoration-none">
+                        <div class="card border-0 shadow-sm h-auto position-relative"
+                            style="transition: border-color 0.3s ease, transform 0.3s ease;">
+                            <div class="card-header bg-gradient-blue text-white py-2" style="min-height: 48px;">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-clipboard fs-5 me-2"></i>
+                                    <h6 class="mb-0 fw-bold">Всего</h6>
+                                </div>
+                            </div>
+                            <div class="card-body d-flex align-items-center justify-content-between p-3">
+                                <div>
+                                    <div class="fw-bold text-primary fs-4">{{ total_tasks }}</div>
+                                    <p class="text-muted mb-0 fw-medium" style="font-size: 0.75rem;">в системе</p>
+                                </div>
+                                <i class="bi bi-list-check text-primary fs-4 opacity-25"></i>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Две основные секции -->
-    <div class="row g-4">
+    <div class="row g-4 mb-5">
         <!-- Распределение по статусам -->
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-light py-3">
-                    <h5 class="mb-0 text-primary">
-                        <i class="bi bi-graph-up-arrow me-2"></i>Распределение по статусам
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm h-100 hover-card">
+                <div class="card-header bg-gradient-primary text-white py-3">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="bi bi-bar-chart-fill me-2"></i>
+                        Распределение по статусам
                     </h5>
                 </div>
                 <div class="card-body p-0">
-                    <ul class="list-group list-group-flush border-0 rounded-3 overflow-hidden">
+                    <div class="status-list p-3">
                         {% for status, count in status_counts.items %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4 border-bottom border-2 border-white">
-                            <div class="d-flex align-items-center gap-3">
-                                <!-- Иконка статуса -->
-                                {% if status == 'overdue' %}
-                                    <i class="bi bi-clock-history text-danger fs-5"></i>
-                                    <span class="fw-bold text-danger">Просрочено</span>
-                                {% elif status == 'todo' %}
-                                    <i class="bi bi-clipboard text-secondary fs-5"></i>
-                                    <span class="fw-medium text-secondary">К выполнению</span>
-                                {% elif status == 'in_progress' %}
-                                    <i class="bi bi-gear text-info fs-5"></i>
-                                    <span class="fw-medium text-info">В работе</span>
-                                {% else %}
-                                    <i class="bi bi-check-square text-success fs-5"></i>
-                                    <span class="fw-medium text-success">Выполнено</span>
-                                {% endif %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center">
+                                <span class="status-dot {{ status }} me-2"></span>
+                                <span class="text-muted">
+                    {% if status == 'overdue' %}Просрочено
+                    {% elif status == 'todo' %}К выполнению
+                    {% elif status == 'in_progress' %}В работе
+                    {% elif status == 'done' %}Выполнено
+                    {% endif %}
+                </span>
                             </div>
-                            <!-- Счётчик -->
-                            <span class="badge bg-{% if status == 'overdue' %}danger
-                                                 {% elif status == 'todo' %}secondary
-                                                 {% elif status == 'in_progress' %}info
-                                                 {% else %}success {% endif %} 
-                                  rounded-pill px-3 py-2 fw-bold fs-6">
-                                {{ count }}
-                            </span>
-                        </li>
+                            <span class="badge bg-light text-dark rounded-pill px-3">{{ count }}</span>
+                        </div>
                         {% endfor %}
-                    </ul>
+                    </div>
+                </div>
+                <div class="card-footer bg-light py-2">
+                    <small class="text-muted">Всего: {{ total_tasks }} задач</small>
                 </div>
             </div>
         </div>
 
         <!-- Распределение по приоритетам -->
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-light py-3">
-                    <h5 class="mb-0 text-success">
-                        <i class="bi bi-star-fill me-2"></i>Распределение по приоритетам
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm h-100 hover-card">
+                <div class="card-header bg-gradient-success text-white py-3">
+                    <h5 class="mb-0 d-flex align-items-center">
+                        <i class="bi bi-star-fill me-2"></i>
+                        Распределение по приоритетам
                     </h5>
                 </div>
                 <div class="card-body p-0">
-                    <ul class="list-group list-group-flush border-0 rounded-3 overflow-hidden">
+                    <div class="priority-list p-3">
                         {% for priority, count in priority_counts.items %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4 border-bottom border-2 border-white">
-                            <div class="d-flex align-items-center gap-3">
-                                <!-- Иконка приоритета -->
-                                {% if priority == 'high' %}
-                                    <i class="bi bi-triangle-fill text-danger fs-5"></i>
-                                    <span class="fw-bold text-danger">Высокий</span>
-                                {% elif priority == 'medium' %}
-                                    <i class="bi bi-circle-fill text-warning fs-5"></i>
-                                    <span class="fw-medium text-warning">Средний</span>
-                                {% else %}
-                                    <i class="bi bi-square-fill text-info fs-5"></i>
-                                    <span class="fw-medium text-info">Низкий</span>
-                                {% endif %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center">
+                                <span class="priority-icon {{ priority }} me-2">
+                    {% if priority == 'high' %}
+                        <i class="bi bi-exclamation-circle-fill"></i>
+                    {% elif priority == 'medium' %}
+                        <i class="bi bi-dash-circle-fill"></i>
+                    {% else %}
+                        <i class="bi bi-check-circle-fill"></i>
+                    {% endif %}
+                </span>
+                                <span class="text-muted">
+                    {% if priority == 'high' %}Высокий
+                    {% elif priority == 'medium' %}Средний
+                    {% else %}Низкий
+                    {% endif %}
+                </span>
                             </div>
-                            <!-- Счётчик -->
-                            <span class="badge bg-{% if priority == 'high' %}danger
-                                                 {% elif priority == 'medium' %}warning
-                                                 {% else %}info {% endif %}
-                                  rounded-pill px-3 py-2 fw-bold fs-6">
-                                {{ count }}
-                            </span>
-                        </li>
+                            <span class="badge bg-light text-dark rounded-pill px-3">{{ count }}</span>
+                        </div>
                         {% endfor %}
-                    </ul>
+                    </div>
+                </div>
+                <div class="card-footer bg-light py-2">
+                    <small class="text-muted">Приоритеты: высокий, средний, низкий</small>
                 </div>
             </div>
         </div>
@@ -165,13 +216,51 @@
     <!-- График динамики -->
     <div class="card border-0 shadow-sm mt-5">
         <div class="card-header bg-white py-3">
-            <h5 class="mb-0 text-secondary">
-                <i class="bi bi-graph-up-arrow me-2"></i>Динамика задач по статусам
-            </h5>
-            <p class="text-muted small mb-0">Распределение за последний месяц</p>
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-secondary d-flex align-items-center">
+                    <i class="bi bi-graph-up-arrow me-2"></i>
+                    Динамика задач по статусам
+                </h5>
+                <!-- Dropdown-меню периода -->
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle rounded-pill px-3" 
+                            type="button" id="periodDropdown"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        месяц
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="periodDropdown">
+                        <li>
+                            <a class="dropdown-item period-option" href="#" data-value="day">
+                                день
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item period-option" href="#" data-value="week">
+                                неделя
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item period-option" href="#" data-value="month">
+                                месяц
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item period-option" href="#" data-value="year">
+                                год
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item period-option" href="#" data-value="all">
+                                весь период
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <p class="text-muted small mb-0">Выберите период для анализа</p>
         </div>
         <div class="card-body p-4">
-            <canvas id="tasksChart" height="120"></canvas>
+            <canvas id="tasksChart" height="180"></canvas>
         </div>
     </div>
 </div>
@@ -181,64 +270,98 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('tasksChart').getContext('2d');
-    const chart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Просроченные', 'К выполнению', 'В работе', 'Выполнены'],
-            datasets: [{
-                label: 'Количество задач',
-                data: [
-                    {{ status_counts.overdue }},
-                    {{ status_counts.todo }},
-                    {{ status_counts.in_progress }},
-                    {{ status_counts.done }}
-                ],
-                backgroundColor: [
-                    'rgba(220, 53, 69, 0.8)',   // Красный (просроченные)
-                    'rgba(108, 117, 125, 0.8)', // Серый (к выполнению)
-                    'rgba(40, 167, 69, 0.8)',  // Зелёный (в работе)
-                    'rgba(0, 123, 255, 0.8)'   // Синий (выполнены)
-                ],
-                borderColor: [
-                    'rgb(220, 53, 69)',
-                    'rgb(108, 117, 125)',
-                    'rgb(40, 167, 69)',
-                    'rgb(0, 123, 255)'
-                ],
-                borderWidth: 1,
-                borderRadius: 6,
-                barPercentage: 0.7
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleColor: 'white',
-                    bodyColor: 'white'
-                }
-            },
-            scales: {
-                y: { 
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)'
-                    },
-                    ticks: {
-                        stepSize: 1
+    let chart;
+
+    // Инициализация графика
+    function initChart(data) {
+        if (chart) chart.destroy();
+        chart = new Chart(ctx, {
+            type: 'bar',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: 'white',
+                        bodyColor: 'white'
                     }
                 },
-                x: {
-                    grid: {
-                        display: false
-                    }
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                        ticks: { stepSize: 1 }
+                    },
+                    x: { grid: { display: false } }
                 }
             }
+        });
+    }
+
+    // Загрузка данных по периоду
+    async function loadData(period) {
+        try {
+            const response = await fetch(`/api/tasks-stats/?period=${period}`);
+            const data = await response.json();
+
+            return {
+                labels: ['Просроченные', 'К выполнению', 'В работе', 'Выполнены'],
+                datasets: [{
+                    label: 'Количество задач',
+                    data: [
+                        data.overdue || 0,
+                        data.todo || 0,
+                        data.in_progress || 0,
+                        data.done || 0
+                    ],
+                    backgroundColor: [
+                        'rgba(220, 53, 69, 0.8)',
+                        'rgba(108, 117, 125, 0.8)',
+                        'rgba(40, 167, 69, 0.8)',
+                        'rgba(0, 123, 255, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgb(220, 53, 69)',
+                        'rgb(108, 117, 125)',
+                        'rgb(40, 167, 69)',
+                        'rgb(0, 123, 255)'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    barPercentage: 0.7
+                }]
+            };
+        } catch (error) {
+            console.error('Ошибка загрузки данных:', error);
+            return null;
         }
+    }
+
+    // Обновление графика и текста кнопки
+    async function updateChart(period, periodLabel) {
+        const data = await loadData(period);
+        if (data) {
+            initChart(data);
+            // Обновляем текст кнопки dropdown
+            document.querySelector('#periodDropdown').textContent = periodLabel;
+        }
+    }
+
+    // Обработчики кликов по пунктам меню
+    document.querySelectorAll('.period-option').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const period = this.getAttribute('data-value');
+            const periodLabel = this.textContent;
+            updateChart(period, periodLabel);
+        });
     });
+
+    // Начальная загрузка (месяц)
+    updateChart('month', 'месяц');
 });
 </script>
 
