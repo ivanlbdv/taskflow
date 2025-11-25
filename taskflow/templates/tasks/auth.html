@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-0">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow auth-card">
+                <div class="card-header text-center">
+                    <h4 class="mb-0">TaskFlow</h4>
+                </div>
+                <div class="card-body p-3">
+                    <ul class="nav nav-pills mb-2" id="pills-tab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="login-tab" data-bs-toggle="pill" href="#login" role="tab" aria-controls="login" aria-selected="true">
+                                <i class="bi bi-lock-fill me-2"></i> Войти
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="register-tab" data-bs-toggle="pill" href="#register" role="tab" aria-controls="register" aria-selected="false">
+                                <i class="bi bi-person-plus-fill me-2"></i> Зарегистрироваться
+                            </a>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="pills-tabContent">
+                        <!-- Форма входа -->
+                        <div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
+                            <form method="post">
+                                {% csrf_token %}
+                                {{ login_form|crispy }}
+                                <button type="submit" name="login-submit" class="btn btn-primary btn-block mt-3">Войти</button>
+                            </form>
+                        </div>
+                        
+                        <!-- Форма регистрации -->
+                        <div class="tab-pane fade" id="register" role="tabpanel" aria-labelledby="register-tab">
+                            <form method="post">
+                                {% csrf_token %}
+                                {{ register_form|crispy }}
+                                <button type="submit" name="register-submit" class="btn btn-primary btn-block mt-3">Зарегистрироваться</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tabs = document.querySelectorAll('.nav-link');
+        const tabContent = document.querySelectorAll('.tab-pane');
+
+        function showTab(tab) {
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContent.forEach(c => c.classList.remove('show'));
+            
+            tab.classList.add('active');
+            document.querySelector(tab.getAttribute('href')).classList.add('show');
+        }
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                showTab(tab);
+            });
+        });
+
+        document.querySelectorAll('.tab-pane').forEach(pane => {
+            pane.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            pane.style.transform = 'translateY(0)';
+        });
+
+        document.querySelector('.nav-link.active').click();
+    });
+</script>
+{% endblock %}

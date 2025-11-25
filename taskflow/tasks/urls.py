@@ -11,6 +11,8 @@ urlpatterns = [
     path('task/<int:pk>/delete/', views.task_delete, name='task_delete'),
     path('task/<int:pk>/update-status/', views.update_task_status, name='update_task_status'),
     path('analytics/', views.analytics, name='analytics'),
+    path('auth/', views.auth_view, name='auth'),
     path('logout/', views.user_logout, name='logout'),
     path('api/tasks-stats/', views.tasks_stats_api, name='tasks_stats_api'),
+    path('export/', views.export_tasks, name='export_tasks'),
 ]
