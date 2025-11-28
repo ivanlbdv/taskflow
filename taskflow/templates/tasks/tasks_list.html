@@ -136,121 +136,121 @@
                             </thead>
                             <tbody>
                                 {% for task in tasks %}
+                                <tr class="clickable-row" data-href="{% url 'task_detail' task.id %}">
+                                    <td class="fw-medium text-secondary">{{ forloop.counter }}</td>
+                                    <td>
+                                        <div>{{ task.title }}</div>
+                                        {% if task.description %}
+                                            <small class="text-muted">{{ task.description|truncatewords:10 }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="bg-{% if task.status == 'todo' %}todo{% elif task.status == 'in_progress' %}in-progress{% elif task.status == 'done' %}done{% else %}overdue{% endif %} rounded-pill px-3 py-1">
+                                            {{ task.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="task-card priority-{% if task.priority == 'high' %}high{% elif task.priority == 'medium' %}medium{% else %}low{% endif %} rounded-pill px-3 py-1">
+                                            {{ task.get_priority_display }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center text-nowrap">
+                                        {% if task.is_overdue %}
+                                            <span class="text-danger">
+                                                <i class="bi bi-alarm me-1"></i>Просрочено
+                                            </span>
+                                        {% elif task.due_date %}
+                                            {{ task.due_date|date:"d.m.Y H:i" }}
+                                        {% else %}
+                                            <span class="text-muted">Не указан</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle rounded-pill px-3"
+                                                type="button" id="actionMenu{{ task.id }}"
+                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="bi bi-three-dots"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actionMenu{{ task.id }}">
+                                                {% comment %} <li>
+                                                    <a class="dropdown-item" href="{% url 'task_detail' task.id %}">
+                                                        <i class="bi bi-eye me-2"></i>Посмотреть
+                                                    </a>
+                                                </li> {% endcomment %}
+                                                <li>
+                                                    <a class="dropdown-item" href="{% url 'task_update' task.id %}">
+                                                        <i class="bi bi-pencil me-2"></i>Редактировать
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <hr class="dropdown-divider">
+                                                </li>
+                                                <li>
+                                                    <form method="post" action="{% url 'task_delete' task.id %}" style="display: inline;">
+                                                        {% csrf_token %}
+                                                        <button type="submit"
+                                                            class="dropdown-item text-danger"
+                                                            onclick="return confirm('Удалить задачу?')">
+                                                            <i class="bi bi-trash me-2"></i>Удалить
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
                                 <tr>
-                    <td class="fw-medium text-secondary">{{ forloop.counter }}</td>
-                    <td>
-                        <div>{{ task.title }}</div>
-                        {% if task.description %}
-                            <small class="text-muted">{{ task.description|truncatewords:10 }}</small>
-                        {% endif %}
-                    </td>
-                    <td class="text-center">
-                        <span class="bg-{% if task.status == 'todo' %}todo{% elif task.status == 'in_progress' %}in-progress{% elif task.status == 'done' %}done{% else %}overdue{% endif %} rounded-pill px-3 py-1">
-                            {{ task.get_status_display }}
-                        </span>
-                    </td>
-                    <td class="text-center">
-                        <span class="task-card priority-{% if task.priority == 'high' %}high{% elif task.priority == 'medium' %}medium{% else %}low{% endif %} rounded-pill px-3 py-1">
-                            {{ task.get_priority_display }}
-                        </span>
-                    </td>
-                    <td class="text-center text-nowrap">
-                        {% if task.is_overdue %}
-                            <span class="text-danger">
-                                <i class="bi bi-alarm me-1"></i>Просрочено
-                            </span>
-                        {% elif task.due_date %}
-                            {{ task.due_date|date:"d.m.Y H:i" }}
-                        {% else %}
-                            <span class="text-muted">Не указан</span>
-                        {% endif %}
-                    </td>
-                    <td class="text-end">
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle rounded-pill px-3"
-                                    type="button" id="actionMenu{{ task.id }}"
-                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-three-dots"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actionMenu{{ task.id }}">
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'task_detail' task.id %}">
-                                        <i class="bi bi-eye me-2"></i>Посмотреть
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'task_update' task.id %}">
-                                        <i class="bi bi-pencil me-2"></i>Редактировать
-                                    </a>
-                                </li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li>
-                                    <form method="post" action="{% url 'task_delete' task.id %}" style="display: inline;">
-                                        {% csrf_token %}
-                                        <button type="submit"
-                                                class="dropdown-item text-danger"
-                                                onclick="return confirm('Удалить задачу?')">
-                                            <i class="bi bi-trash me-2"></i>Удалить
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="6" class="text-center py-5">
-                        <div class="text-muted my-3">
-                            <i class="bi bi-inbox-fill fs-1 d-block mb-2"></i>
-                            Задач не найдено
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                                    <td colspan="6" class="text-center py-5">
+                                        <div class="text-muted my-3">
+                                            <i class="bi bi-inbox-fill fs-1 d-block mb-2"></i>
+                                            Задач не найдено
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
-</div>
-</div>
 
-{% if tasks.has_other_pages %}
-<nav class="mt-4" aria-label="...">
-    <ul class="pagination justify-content-center">
-        {% if tasks.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?status={{ current_status }}&page={{ tasks.previous_page_number }}">
-                    Предыдущая
-                </a>
-            </li>
-        {% endif %}
+    {% if tasks.has_other_pages %}
+        <nav class="mt-4" aria-label="...">
+            <ul class="pagination justify-content-center">
+                {% if tasks.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?status={{ current_status }}&page={{ tasks.previous_page_number }}">
+                            Предыдущая
+                        </a>
+                    </li>
+                {% endif %}
 
-        {% for i in tasks.paginator.page_range %}
-            {% if tasks.number == i %}
-                <li class="page-item active">
-                    <span class="page-link">{{ i }}</span>
-                </li>
-            {% else %}
-                <li class="page-item">
-                    <a class="page-link" href="?status={{ current_status }}&page={{ i }}">{{ i }}</a>
-                </li>
-            {% endif %}
-        {% endfor %}
+                {% for i in tasks.paginator.page_range %}
+                {% if tasks.number == i %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ i }}</span>
+                    </li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?status={{ current_status }}&page={{ i }}">{{ i }}</a>
+                    </li>
+                {% endif %}
+                {% endfor %}
 
-        {% if tasks.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="?status={{ current_status }}&page={{ tasks.next_page_number }}">
-                    Следующая
-                </a>
-            </li>
-        {% endif %}
-    </ul>
-</nav>
-{% endif %}
-
+                {% if tasks.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?status={{ current_status }}&page={{ tasks.next_page_number }}">
+                            Следующая
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
 </div>
 {% endblock %}
 
@@ -261,7 +261,17 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('tr.table-danger').forEach(row => {
+    document.querySelectorAll('.clickable-row').forEach(function(row) {
+        if (!row) return;
+        
+        row.addEventListener('click', function(event) {
+            if (!event.target.closest('.dropdown')) {
+                window.location.href = this.dataset.href;
+            }
+        });
+    });
+
+    document.querySelectorAll('tr.table-danger').forEach(function(row) {
         const dueDateCell = row.querySelector('td:nth-child(5)');
         if (dueDateCell) {
             dueDateCell.innerHTML = `
